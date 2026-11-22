@@ -1,0 +1,11 @@
+.env
+*.env
+secrets.yaml
+**/secrets.yaml
+*.key
+*.pem
+*.bak*
+*.log
+.DS_Store
+# zdjęcia auta dodaje użytkownik samodzielnie (prawa autorskie)
+www/

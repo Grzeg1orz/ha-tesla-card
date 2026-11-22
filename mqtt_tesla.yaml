@@ -1,0 +1,452 @@
+# Encje TeslaMate przez MQTT (TeslaMate nie publikuje MQTT Discovery).
+# Zakłada car_id 1: teslamate/cars/1/...  Dla innego auta zamień "cars/1" w całym pliku.
+
+sensor:
+  - name: "Tesla poziom baterii"
+    unique_id: tesla_battery_level
+    default_entity_id: sensor.tesla_tesla_poziom_baterii
+    state_topic: "teslamate/cars/1/battery_level"
+    unit_of_measurement: "%"
+    device_class: battery
+    state_class: measurement
+    device: &tesla_device
+      identifiers: ["teslamate_car_1"]
+      name: "Tesla"
+      manufacturer: "Tesla"
+      model: "Model 3"
+
+  - name: "Tesla zasięg"
+    unique_id: tesla_est_range
+    default_entity_id: sensor.tesla_tesla_zasieg
+    state_topic: "teslamate/cars/1/est_battery_range_km"
+    unit_of_measurement: "km"
+    device_class: distance
+    state_class: measurement
+    device: *tesla_device
+
+  - name: "Tesla stan"
+    unique_id: tesla_state
+    default_entity_id: sensor.tesla_tesla_stan
+    state_topic: "teslamate/cars/1/state"
+    device: *tesla_device
+
+  - name: "Tesla stan ładowania"
+    unique_id: tesla_charging_state
+    default_entity_id: sensor.tesla_tesla_stan_ladowania
+    state_topic: "teslamate/cars/1/charging_state"
+    device: *tesla_device
+
+  - name: "Tesla przebieg"
+    unique_id: tesla_odometer
+    default_entity_id: sensor.tesla_tesla_przebieg
+    state_topic: "teslamate/cars/1/odometer"
+    unit_of_measurement: "km"
+    device_class: distance
+    state_class: total_increasing
+    device: *tesla_device
+
+  - name: "Tesla temperatura zewnętrzna"
+    unique_id: tesla_outside_temp
+    default_entity_id: sensor.tesla_tesla_temperatura_zewnetrzna
+    state_topic: "teslamate/cars/1/outside_temp"
+    unit_of_measurement: "°C"
+    device_class: temperature
+    state_class: measurement
+    device: *tesla_device
+
+  - name: "Tesla temperatura wewnętrzna"
+    unique_id: tesla_inside_temp
+    default_entity_id: sensor.tesla_tesla_temperatura_wewnetrzna
+    state_topic: "teslamate/cars/1/inside_temp"
+    unit_of_measurement: "°C"
+    device_class: temperature
+    state_class: measurement
+    device: *tesla_device
+
+  - name: "Tesla lokalizacja (geofence)"
+    unique_id: tesla_geofence
+    default_entity_id: sensor.tesla_tesla_lokalizacja_geofence
+    state_topic: "teslamate/cars/1/geofence"
+    device: *tesla_device
+
+  # --- Rozszerzone ---
+  - name: "Bieg"
+    unique_id: tesla_shift_state
+    default_entity_id: sensor.tesla_shift_state
+    state_topic: "teslamate/cars/1/shift_state"
+    device: *tesla_device
+
+  - name: "Prędkość"
+    unique_id: tesla_speed
+    default_entity_id: sensor.tesla_speed
+    state_topic: "teslamate/cars/1/speed"
+    unit_of_measurement: "km/h"
+    device_class: speed
+    state_class: measurement
+    value_template: "{% if value in ['nil','(null)','null',''] %}None{% else %}{{ value }}{% endif %}"
+    device: *tesla_device
+
+  - name: "Moc chwilowa"
+    unique_id: tesla_power
+    default_entity_id: sensor.tesla_power
+    state_topic: "teslamate/cars/1/power"
+    unit_of_measurement: "kW"
+    device_class: power
+    state_class: measurement
+    value_template: "{% if value in ['nil','(null)','null',''] %}None{% else %}{{ value }}{% endif %}"
+    device: *tesla_device
+
+  - name: "Użyteczny poziom baterii"
+    unique_id: tesla_usable_bat
+    default_entity_id: sensor.tesla_usable_bat
+    state_topic: "teslamate/cars/1/usable_battery_level"
+    unit_of_measurement: "%"
+    device_class: battery
+    state_class: measurement
+    value_template: "{% if value in ['nil','(null)','null',''] %}None{% else %}{{ value }}{% endif %}"
+    device: *tesla_device
+
+  - name: "Zasięg (rated)"
+    unique_id: tesla_range_rated
+    default_entity_id: sensor.tesla_range_rated
+    state_topic: "teslamate/cars/1/rated_battery_range_km"
+    unit_of_measurement: "km"
+    device_class: distance
+    state_class: measurement
+    value_template: "{% if value in ['nil','(null)','null',''] %}None{% else %}{{ value }}{% endif %}"
+    device: *tesla_device
+
+  - name: "Zasięg (ideal)"
+    unique_id: tesla_range_ideal
+    default_entity_id: sensor.tesla_range_ideal
+    state_topic: "teslamate/cars/1/ideal_battery_range_km"
+    unit_of_measurement: "km"
+    device_class: distance
+    state_class: measurement
+    value_template: "{% if value in ['nil','(null)','null',''] %}None{% else %}{{ value }}{% endif %}"
+    device: *tesla_device
+
+  - name: "Limit ładowania"
+    unique_id: tesla_limit_soc
+    default_entity_id: sensor.tesla_limit_soc
+    state_topic: "teslamate/cars/1/charge_limit_soc"
+    unit_of_measurement: "%"
+    state_class: measurement
+    value_template: "{% if value in ['nil','(null)','null',''] %}None{% else %}{{ value }}{% endif %}"
+    device: *tesla_device
+
+  - name: "Energia dodana w sesji"
+    unique_id: tesla_energy_added
+    default_entity_id: sensor.tesla_energy_added
+    state_topic: "teslamate/cars/1/charge_energy_added"
+    unit_of_measurement: "kWh"
+    device_class: energy
+    value_template: "{% if value in ['nil','(null)','null',''] %}None{% else %}{{ value }}{% endif %}"
+    device: *tesla_device
+
+  - name: "Moc ładowarki"
+    unique_id: tesla_charger_power
+    default_entity_id: sensor.tesla_charger_power
+    state_topic: "teslamate/cars/1/charger_power"
+    unit_of_measurement: "kW"
+    device_class: power
+    state_class: measurement
+    value_template: "{% if value in ['nil','(null)','null',''] %}None{% else %}{{ value }}{% endif %}"
+    device: *tesla_device
+
+  - name: "Prąd ładowania"
+    unique_id: tesla_charger_amps
+    default_entity_id: sensor.tesla_charger_amps
+    state_topic: "teslamate/cars/1/charger_actual_current"
+    unit_of_measurement: "A"
+    device_class: current
+    state_class: measurement
+    value_template: "{% if value in ['nil','(null)','null',''] %}None{% else %}{{ value }}{% endif %}"
+    device: *tesla_device
+
+  - name: "Napięcie ładowarki"
+    unique_id: tesla_charger_volts
+    default_entity_id: sensor.tesla_charger_volts
+    state_topic: "teslamate/cars/1/charger_voltage"
+    unit_of_measurement: "V"
+    device_class: voltage
+    state_class: measurement
+    value_template: "{% if value in ['nil','(null)','null',''] %}None{% else %}{{ value }}{% endif %}"
+    device: *tesla_device
+
+  - name: "Zadany prąd ładowania"
+    unique_id: tesla_amps_request
+    default_entity_id: sensor.tesla_amps_request
+    state_topic: "teslamate/cars/1/charge_current_request"
+    unit_of_measurement: "A"
+    device_class: current
+    state_class: measurement
+    value_template: "{% if value in ['nil','(null)','null',''] %}None{% else %}{{ value }}{% endif %}"
+    device: *tesla_device
+
+  - name: "Czas do pełnego naładowania"
+    unique_id: tesla_time_to_full
+    default_entity_id: sensor.tesla_time_to_full
+    state_topic: "teslamate/cars/1/time_to_full_charge"
+    unit_of_measurement: "h"
+    device_class: duration
+    state_class: measurement
+    value_template: "{% if value in ['nil','(null)','null',''] %}None{% else %}{{ value }}{% endif %}"
+    device: *tesla_device
+
+  - name: "Wysokość"
+    unique_id: tesla_elevation
+    default_entity_id: sensor.tesla_elevation
+    state_topic: "teslamate/cars/1/elevation"
+    unit_of_measurement: "m"
+    device_class: distance
+    state_class: measurement
+    value_template: "{% if value in ['nil','(null)','null',''] %}None{% else %}{{ value }}{% endif %}"
+    device: *tesla_device
+
+  - name: "Kierunek jazdy"
+    unique_id: tesla_heading
+    default_entity_id: sensor.tesla_heading
+    state_topic: "teslamate/cars/1/heading"
+    unit_of_measurement: "°"
+    state_class: measurement
+    value_template: "{% if value in ['nil','(null)','null',''] %}None{% else %}{{ value }}{% endif %}"
+    device: *tesla_device
+
+  - name: "Wersja oprogramowania"
+    unique_id: tesla_version
+    default_entity_id: sensor.tesla_version
+    state_topic: "teslamate/cars/1/version"
+    device: *tesla_device
+
+  - name: "Tryb utrzymania klimatu"
+    unique_id: tesla_climate_keeper
+    default_entity_id: sensor.tesla_climate_keeper
+    state_topic: "teslamate/cars/1/climate_keeper_mode"
+    device: *tesla_device
+
+  - name: "Ciśnienie opony LP"
+    unique_id: tesla_tpms_fl
+    default_entity_id: sensor.tesla_tpms_fl
+    state_topic: "teslamate/cars/1/tpms_pressure_fl"
+    unit_of_measurement: "bar"
+    device_class: pressure
+    state_class: measurement
+    value_template: "{% if value in ['nil','(null)','null',''] %}None{% else %}{{ value }}{% endif %}"
+    device: *tesla_device
+
+  - name: "Ciśnienie opony PP"
+    unique_id: tesla_tpms_fr
+    default_entity_id: sensor.tesla_tpms_fr
+    state_topic: "teslamate/cars/1/tpms_pressure_fr"
+    unit_of_measurement: "bar"
+    device_class: pressure
+    state_class: measurement
+    value_template: "{% if value in ['nil','(null)','null',''] %}None{% else %}{{ value }}{% endif %}"
+    device: *tesla_device
+
+  - name: "Ciśnienie opony LT"
+    unique_id: tesla_tpms_rl
+    default_entity_id: sensor.tesla_tpms_rl
+    state_topic: "teslamate/cars/1/tpms_pressure_rl"
+    unit_of_measurement: "bar"
+    device_class: pressure
+    state_class: measurement
+    value_template: "{% if value in ['nil','(null)','null',''] %}None{% else %}{{ value }}{% endif %}"
+    device: *tesla_device
+
+  - name: "Ciśnienie opony PT"
+    unique_id: tesla_tpms_rr
+    default_entity_id: sensor.tesla_tpms_rr
+    state_topic: "teslamate/cars/1/tpms_pressure_rr"
+    unit_of_measurement: "bar"
+    device_class: pressure
+    state_class: measurement
+    value_template: "{% if value in ['nil','(null)','null',''] %}None{% else %}{{ value }}{% endif %}"
+    device: *tesla_device
+
+  - name: "Stan od"
+    unique_id: tesla_since
+    default_entity_id: sensor.tesla_since
+    state_topic: "teslamate/cars/1/since"
+    device_class: timestamp
+    device: *tesla_device
+
+binary_sensor:
+  - name: "Tesla podłączona do ładowarki"
+    unique_id: tesla_plugged_in
+    default_entity_id: binary_sensor.tesla_tesla_podlaczona_do_ladowarki
+    state_topic: "teslamate/cars/1/plugged_in"
+    payload_on: "true"
+    payload_off: "false"
+    device_class: plug
+    device: *tesla_device
+
+  - name: "Tesla drzwi otwarte"
+    unique_id: tesla_doors_open
+    default_entity_id: binary_sensor.tesla_tesla_drzwi_otwarte
+    state_topic: "teslamate/cars/1/doors_open"
+    payload_on: "true"
+    payload_off: "false"
+    device_class: door
+    device: *tesla_device
+
+  - name: "Pojazd odblokowany"
+    unique_id: tesla_locked
+    default_entity_id: binary_sensor.tesla_locked
+    state_topic: "teslamate/cars/1/locked"
+    payload_on: "false"
+    payload_off: "true"
+    device_class: lock
+    device: *tesla_device
+
+  - name: "Tryb Sentry"
+    unique_id: tesla_sentry
+    default_entity_id: binary_sensor.tesla_sentry
+    state_topic: "teslamate/cars/1/sentry_mode"
+    payload_on: "true"
+    payload_off: "false"
+    device: *tesla_device
+
+  - name: "Klimatyzacja włączona"
+    unique_id: tesla_climate_on
+    default_entity_id: binary_sensor.tesla_climate_on
+    state_topic: "teslamate/cars/1/is_climate_on"
+    payload_on: "true"
+    payload_off: "false"
+    device_class: heat
+    device: *tesla_device
+
+  - name: "Przygotowanie (preconditioning)"
+    unique_id: tesla_precond
+    default_entity_id: binary_sensor.tesla_precond
+    state_topic: "teslamate/cars/1/is_preconditioning"
+    payload_on: "true"
+    payload_off: "false"
+    device: *tesla_device
+
+  - name: "Użytkownik w pojeździe"
+    unique_id: tesla_user_present
+    default_entity_id: binary_sensor.tesla_user_present
+    state_topic: "teslamate/cars/1/is_user_present"
+    payload_on: "true"
+    payload_off: "false"
+    device_class: occupancy
+    device: *tesla_device
+
+  - name: "Okna otwarte"
+    unique_id: tesla_windows_open
+    default_entity_id: binary_sensor.tesla_windows_open
+    state_topic: "teslamate/cars/1/windows_open"
+    payload_on: "true"
+    payload_off: "false"
+    device_class: window
+    device: *tesla_device
+
+  - name: "Bagażnik otwarty"
+    unique_id: tesla_trunk_open
+    default_entity_id: binary_sensor.tesla_trunk_open
+    state_topic: "teslamate/cars/1/trunk_open"
+    payload_on: "true"
+    payload_off: "false"
+    device_class: opening
+    device: *tesla_device
+
+  - name: "Frunk otwarty"
+    unique_id: tesla_frunk_open
+    default_entity_id: binary_sensor.tesla_frunk_open
+    state_topic: "teslamate/cars/1/frunk_open"
+    payload_on: "true"
+    payload_off: "false"
+    device_class: opening
+    device: *tesla_device
+
+  - name: "Port ładowania otwarty"
+    unique_id: tesla_port_open
+    default_entity_id: binary_sensor.tesla_port_open
+    state_topic: "teslamate/cars/1/charge_port_door_open"
+    payload_on: "true"
+    payload_off: "false"
+    device_class: opening
+    device: *tesla_device
+
+  - name: "Dostępna aktualizacja"
+    unique_id: tesla_update_avail
+    default_entity_id: binary_sensor.tesla_update_avail
+    state_topic: "teslamate/cars/1/update_available"
+    payload_on: "true"
+    payload_off: "false"
+    device_class: update
+    device: *tesla_device
+
+  - name: "Drzwi lewe przednie"
+    unique_id: tesla_door_fl
+    default_entity_id: binary_sensor.tesla_door_fl
+    state_topic: "teslamate/cars/1/driver_front_door_open"
+    payload_on: "true"
+    payload_off: "false"
+    device_class: door
+    device: *tesla_device
+
+  - name: "Drzwi prawe przednie"
+    unique_id: tesla_door_fr
+    default_entity_id: binary_sensor.tesla_door_fr
+    state_topic: "teslamate/cars/1/passenger_front_door_open"
+    payload_on: "true"
+    payload_off: "false"
+    device_class: door
+    device: *tesla_device
+
+  - name: "Drzwi lewe tylne"
+    unique_id: tesla_door_rl
+    default_entity_id: binary_sensor.tesla_door_rl
+    state_topic: "teslamate/cars/1/driver_rear_door_open"
+    payload_on: "true"
+    payload_off: "false"
+    device_class: door
+    device: *tesla_device
+
+  - name: "Drzwi prawe tylne"
+    unique_id: tesla_door_rr
+    default_entity_id: binary_sensor.tesla_door_rr
+    state_topic: "teslamate/cars/1/passenger_rear_door_open"
+    payload_on: "true"
+    payload_off: "false"
+    device_class: door
+    device: *tesla_device
+
+  - name: "Ostrzeżenie opona LP"
+    unique_id: tesla_tpms_w_fl
+    default_entity_id: binary_sensor.tesla_tpms_w_fl
+    state_topic: "teslamate/cars/1/tpms_soft_warning_fl"
+    payload_on: "true"
+    payload_off: "false"
+    device_class: problem
+    device: *tesla_device
+
+  - name: "Ostrzeżenie opona PP"
+    unique_id: tesla_tpms_w_fr
+    default_entity_id: binary_sensor.tesla_tpms_w_fr
+    state_topic: "teslamate/cars/1/tpms_soft_warning_fr"
+    payload_on: "true"
+    payload_off: "false"
+    device_class: problem
+    device: *tesla_device
+
+  - name: "Ostrzeżenie opona LT"
+    unique_id: tesla_tpms_w_rl
+    default_entity_id: binary_sensor.tesla_tpms_w_rl
+    state_topic: "teslamate/cars/1/tpms_soft_warning_rl"
+    payload_on: "true"
+    payload_off: "false"
+    device_class: problem
+    device: *tesla_device
+
+  - name: "Ostrzeżenie opona PT"
+    unique_id: tesla_tpms_w_rr
+    default_entity_id: binary_sensor.tesla_tpms_w_rr
+    state_topic: "teslamate/cars/1/tpms_soft_warning_rr"
+    payload_on: "true"
+    payload_off: "false"
+    device_class: problem
+    device: *tesla_device

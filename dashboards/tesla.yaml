@@ -1,0 +1,163 @@
+# Dashboard Tesla (TeslaMate + button-card). Tylko encje sensor.tesla_* / binary_sensor.tesla_* z MQTT (mqtt_tesla.yaml).
+# Wymaga: button-card (HACS), obrazy w /config/www/tesla/ (adres /local/tesla/...).
+title: Tesla
+views:
+  - title: Tesla
+    path: tesla
+    icon: mdi:car-electric
+    type: masonry
+    cards:
+      - type: custom:button-card
+        show_icon: false
+        show_name: false
+        show_state: false
+        tap_action:
+          action: none
+        hold_action:
+          action: none
+        styles:
+          card:
+            - padding: 0px
+            - background: transparent
+            - border: none
+            - box-shadow: none
+            - max-width: 460px
+          grid:
+            - grid-template-areas: '"tc"'
+            - grid-template-columns: 1fr
+          custom_fields:
+            tc:
+              - width: 100%
+        custom_fields:
+          tc: |
+            [[[
+              const S = id => { const o = states[id]; return o ? o.state : undefined; };
+              const bad = v => v === undefined || v === null || ['unknown','unavailable','None','nil','null',''].includes(v);
+              const esc = v => String(v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+              const N = id => { const v = parseFloat(S(id)); return isNaN(v) ? null : v; };
+              const F = (id, d, u) => { const v = N(id); return v === null ? '–' : v.toFixed(d) + (u || ''); };
+              const ON = id => S(id) === 'on';
+              const ST = (id, yes, no) => S(id) === 'on' ? yes : S(id) === 'off' ? no : '–';
+              const dur = h => { if (h === null) return '–'; const m = Math.round(h * 60); return m >= 60 ? Math.floor(m / 60) + ' h ' + String(m % 60).padStart(2, '0') + ' min' : m + ' min'; };
+              const ago = iso => { const t = Date.parse(iso); if (isNaN(t)) return '–'; const s = Math.max(0, (Date.now() - t) / 1000); if (s < 60) return 'przed chwilą'; if (s < 3600) return Math.floor(s / 60) + ' min temu'; if (s < 86400) return Math.floor(s / 3600) + ' h temu'; return Math.floor(s / 86400) + ' d temu'; };
+
+              const st = S('sensor.tesla_tesla_stan');
+              const chg = S('sensor.tesla_tesla_stan_ladowania');
+              const shift = S('sensor.tesla_shift_state');
+              const driving = ['D', 'R', 'N'].includes(shift);
+              const charging = chg === 'Charging';
+              const plugged = ON('binary_sensor.tesla_tesla_podlaczona_do_ladowarki');
+
+              const stMap = { online: ['ONLINE', '#34c759'], asleep: ['UŚPIONY', '#9aa0a6'], suspended: ['UŚPIENIE', '#9aa0a6'], offline: ['OFFLINE', '#9aa0a6'], updating: ['AKTUALIZACJA', '#ff9f0a'], driving: ['W TRAKCIE JAZDY', '#3b82d4'], charging: ['ŁADOWANIE', '#34c759'] };
+              let badge = stMap[st] || [bad(st) ? 'BRAK DANYCH' : String(st).toUpperCase(), '#9aa0a6'];
+              if (driving) badge = stMap.driving; else if (charging) badge = stMap.charging;
+              const shiftTxt = { P: 'Parkowanie (P)', D: 'Jazda (D)', R: 'Wsteczny (R)', N: 'Luz (N)' }[shift] || '';
+
+              const soc = N('sensor.tesla_tesla_poziom_baterii');
+              const lim = N('sensor.tesla_limit_soc');
+              const socColor = soc === null ? '#9aa0a6' : soc <= 20 ? '#ff453a' : soc <= 40 ? '#ff9f0a' : '#34c759';
+              const socW = soc === null ? 0 : Math.max(0, Math.min(100, soc));
+              const limPos = lim === null ? null : Math.max(0, Math.min(100, lim));
+
+              const geo = S('sensor.tesla_tesla_lokalizacja_geofence');
+              const place = bad(geo) ? '' : esc(geo);
+              const since = S('sensor.tesla_since');
+
+              const door = (id, label, cls) => '<div class="tc-door ' + cls + ' ' + (ON(id) ? 'open' : 'ok') + '" title="' + label + '"></div>';
+              const tire = (id, wid, pos) => {
+                const v = N(id);
+                const warn = ON(wid);
+                return '<div class="tc-tire ' + pos + (warn ? ' warn' : '') + '"><b>' + (v === null ? '–' : v.toFixed(2)) + '</b><small>bar</small></div>';
+              };
+              const chip = (label, value, warn) => '<div class="tc-chip' + (warn ? ' warn' : '') + '"><span>' + label + '</span><b>' + value + '</b></div>';
+
+              let chgPanel = '';
+              if (charging || (plugged && chg !== 'Disconnected')) {
+                const chgTxt = { Charging: 'Ładowanie', Complete: 'Naładowano', Stopped: 'Wstrzymane', Starting: 'Rozpoczynanie', NoPower: 'Brak zasilania' }[chg] || esc(chg);
+                chgPanel = '<div class="tc-panel"><div class="tc-ptitle">' + chgTxt + (charging ? ' <i class="tc-pulse"></i>' : '') + '</div>' +
+                  '<div class="tc-row3">' +
+                  '<div><span>Moc</span><b>' + F('sensor.tesla_charger_power', 1, ' kW') + '</b></div>' +
+                  '<div><span>Prąd / napięcie</span><b>' + (charging ? F('sensor.tesla_charger_amps', 0, ' A') + ' / ' + F('sensor.tesla_charger_volts', 0, ' V') : '–') + '</b></div>' +
+                  '<div><span>Dodano</span><b>' + F('sensor.tesla_energy_added', 1, ' kWh') + '</b></div>' +
+                  '</div><div class="tc-row3">' +
+                  '<div><span>Do pełna</span><b>' + (charging ? dur(N('sensor.tesla_time_to_full')) : '–') + '</b></div>' +
+                  '<div><span>Limit</span><b>' + F('sensor.tesla_limit_soc', 0, ' %') + '</b></div>' +
+                  '<div><span>Zadany prąd</span><b>' + F('sensor.tesla_amps_request', 0, ' A') + '</b></div></div></div>';
+              } else if (N('sensor.tesla_energy_added') !== null) {
+                chgPanel = '<div class="tc-note">Ostatnia sesja ładowania: <b>' + F('sensor.tesla_energy_added', 1, ' kWh') + '</b></div>';
+              }
+
+              const speedTxt = driving ? '<div class="tc-speed">' + F('sensor.tesla_speed', 0, ' km/h') + '</div>' : '';
+
+              const css = '<style>' +
+                '.tc{background:#161719;color:#e8eaed;font-family:-apple-system,"Segoe UI",system-ui,sans-serif;font-size:13px;line-height:1.35;padding:14px;border-radius:16px;box-sizing:border-box;text-align:left}' +
+                '.tc *{box-sizing:border-box}.tc small{color:#9aa0a6;font-size:10px;margin-left:2px}' +
+                '.tc-head{display:flex;justify-content:space-between;align-items:flex-start}' +
+                '.tc-name{font-size:24px;font-weight:600}.tc-sub{color:#9aa0a6;font-size:12px;margin-top:2px}' +
+                '.tc-badge{font-size:10px;font-weight:700;letter-spacing:.06em;padding:4px 9px;border-radius:99px;border:1px solid;white-space:nowrap}' +
+                '.tc-hero{display:block;width:100%;height:auto;margin:6px 0 2px}' +
+                '.tc-soc{display:flex;justify-content:space-between;align-items:baseline;margin-top:4px}' +
+                '.tc-soc b{font-size:34px;font-weight:600}.tc-soc b small{font-size:16px;color:#9aa0a6}.tc-soc span{color:#9aa0a6;font-size:12px}' +
+                '.tc-bar{position:relative;height:10px;background:#2a2d31;border-radius:6px;margin:6px 0 4px;overflow:visible}' +
+                '.tc-fill{height:100%;border-radius:6px}.tc-lim{position:absolute;top:-4px;width:2px;height:18px;background:#e8eaed;opacity:.85}' +
+                '.tc-rng{display:flex;justify-content:space-between;color:#9aa0a6;font-size:11px}' +
+                '.tc-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}' +
+                '.tc-tile,.tc-chip{background:#1f2124;border-radius:10px;padding:8px 10px}' +
+                '.tc-tile span,.tc-chip span,.tc-row3 span{display:block;color:#9aa0a6;font-size:10px;text-transform:uppercase;letter-spacing:.04em}' +
+                '.tc-tile b,.tc-chip b,.tc-row3 b{font-size:15px;font-weight:600}' +
+                '.tc-panel{background:#1f2124;border-radius:12px;padding:10px 12px;margin-top:12px;border:1px solid #2a2d31}' +
+                '.tc-ptitle{font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:8px}' +
+                '.tc-row3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}' +
+                '.tc-note{margin-top:12px;color:#9aa0a6;font-size:12px}.tc-note b{color:#e8eaed}' +
+                '.tc-pulse{width:8px;height:8px;border-radius:50%;background:#34c759;display:inline-block;animation:tcp 1.6s infinite}' +
+                '@keyframes tcp{0%{box-shadow:0 0 0 0 rgba(52,199,89,.7)}70%{box-shadow:0 0 0 8px rgba(52,199,89,0)}100%{box-shadow:0 0 0 0 rgba(52,199,89,0)}}' +
+                '.tc-top{position:relative;height:340px;margin-top:12px}' +
+                '.tc-topimg{position:absolute;left:50%;top:0;height:340px;width:auto;transform:translateX(-50%)}' +
+                '.tc-tire{position:absolute;background:#1f2124;border:1px solid #2a2d31;border-radius:10px;padding:5px 9px;text-align:center}' +
+                '.tc-tire b{font-size:15px}.tc-tire.warn{border-color:#ff453a;color:#ff453a}' +
+                '.tc-tire{width:54px;margin-top:-20px}' +
+                '.tc-tire.fl{right:calc(50% + 68px);top:73px}.tc-tire.fr{left:calc(50% + 68px);top:73px}.tc-tire.rl{right:calc(50% + 68px);top:257px}.tc-tire.rr{left:calc(50% + 68px);top:257px}' +
+                '.tc-door{position:absolute;width:4px;height:68px;border-radius:2px}' +
+                '.tc-door.ok{background:#34c759}.tc-door.open{background:#ff453a}' +
+                '.tc-door.dl1{left:calc(50% - 65px);top:112px}.tc-door.dl2{left:calc(50% - 65px);top:184px}' +
+                '.tc-door.dr1{left:calc(50% + 61px);top:112px}.tc-door.dr2{left:calc(50% + 61px);top:184px}' +
+                '.tc-pill{position:absolute;left:50%;transform:translateX(-50%);font-size:10px;padding:2px 8px;border-radius:99px;background:#1f2124;border:1px solid #34c759;color:#34c759}' +
+                '.tc-pill.open{border-color:#ff453a;color:#ff453a}.tc-pill.f{top:0}.tc-pill.b{bottom:0}' +
+                '.tc-chips{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px}' +
+                '.tc-chip.warn{border:1px solid #ff9f0a}.tc-chip.warn b{color:#ff9f0a}' +
+                '.tc-speed{font-size:20px;font-weight:600;margin-top:4px}' +
+                '.tc-foot{display:flex;justify-content:space-between;color:#9aa0a6;font-size:11px;margin-top:12px}' +
+                '</style>';
+
+              const card = css + '<div class="tc">' +
+                '<div class="tc-head"><div><div class="tc-name">Tesla</div><div class="tc-sub">' + (place ? place + ' · ' : '') + esc(shiftTxt) + '</div>' + speedTxt + '</div>' +
+                '<div class="tc-badge" style="color:' + badge[1] + ';border-color:' + badge[1] + '">' + badge[0] + '</div></div>' +
+                '<img class="tc-hero" src="/local/tesla/tesla-iso.jpg" alt="">' +
+                '<div class="tc-soc"><b>' + (soc === null ? '–' : soc.toFixed(0)) + '<small>%</small></b><span>' + F('sensor.tesla_range_rated', 0, ' km') + ' zasięgu</span></div>' +
+                '<div class="tc-bar"><div class="tc-fill" style="width:' + socW + '%;background:' + socColor + '"></div>' + (limPos === null ? '' : '<div class="tc-lim" style="left:calc(' + limPos + '% - 1px)"></div>') + '</div>' +
+                '<div class="tc-rng"><span>Limit: ' + F('sensor.tesla_limit_soc', 0, ' %') + '</span><span>Szacunkowo: ' + F('sensor.tesla_tesla_zasieg', 0, ' km') + '</span></div>' +
+                '<div class="tc-tiles">' +
+                '<div class="tc-tile"><span>Przebieg</span><b>' + (N('sensor.tesla_tesla_przebieg') === null ? '–' : Math.round(N('sensor.tesla_tesla_przebieg')).toLocaleString('pl-PL') + ' km') + '</b></div>' +
+                '<div class="tc-tile"><span>Wewnątrz</span><b>' + F('sensor.tesla_tesla_temperatura_wewnetrzna', 1, ' °C') + '</b></div>' +
+                '<div class="tc-tile"><span>Na zewnątrz</span><b>' + F('sensor.tesla_tesla_temperatura_zewnetrzna', 1, ' °C') + '</b></div>' +
+                '</div>' + chgPanel +
+                '<div class="tc-top"><img class="tc-topimg" src="/local/tesla/tesla-top.jpg" alt="">' +
+                '<div class="tc-pill f ' + (ON('binary_sensor.tesla_frunk_open') ? 'open' : '') + '">Frunk ' + ST('binary_sensor.tesla_frunk_open', 'otwarty', 'zamknięty') + '</div>' +
+                '<div class="tc-pill b ' + (ON('binary_sensor.tesla_trunk_open') ? 'open' : '') + '">Bagażnik ' + ST('binary_sensor.tesla_trunk_open', 'otwarty', 'zamknięty') + '</div>' +
+                door('binary_sensor.tesla_door_fl', 'Drzwi lewe przednie', 'dl1') + door('binary_sensor.tesla_door_rl', 'Drzwi lewe tylne', 'dl2') +
+                door('binary_sensor.tesla_door_fr', 'Drzwi prawe przednie', 'dr1') + door('binary_sensor.tesla_door_rr', 'Drzwi prawe tylne', 'dr2') +
+                tire('sensor.tesla_tpms_fl', 'binary_sensor.tesla_tpms_w_fl', 'fl') + tire('sensor.tesla_tpms_fr', 'binary_sensor.tesla_tpms_w_fr', 'fr') +
+                tire('sensor.tesla_tpms_rl', 'binary_sensor.tesla_tpms_w_rl', 'rl') + tire('sensor.tesla_tpms_rr', 'binary_sensor.tesla_tpms_w_rr', 'rr') +
+                '</div>' +
+                '<div class="tc-chips">' +
+                chip('Zamek', ST('binary_sensor.tesla_locked', 'Odblokowany', 'Zamknięty'), ON('binary_sensor.tesla_locked')) +
+                chip('Sentry', ST('binary_sensor.tesla_sentry', 'Włączony', 'Wyłączony'), false) +
+                chip('Klimatyzacja', ON('binary_sensor.tesla_climate_on') ? 'Włączona' : (ON('binary_sensor.tesla_precond') ? 'Przygotowanie' : ST('binary_sensor.tesla_climate_on', 'Włączona', 'Wyłączona')), false) +
+                chip('Okna', ST('binary_sensor.tesla_windows_open', 'Otwarte', 'Zamknięte'), ON('binary_sensor.tesla_windows_open')) +
+                chip('Port ładowania', ST('binary_sensor.tesla_port_open', 'Otwarty', 'Zamknięty'), false) +
+                chip('W pojeździe', ST('binary_sensor.tesla_user_present', 'Tak', 'Nie'), false) +
+                '</div>' +
+                '<div class="tc-foot"><span>Oprogramowanie ' + (bad(S('sensor.tesla_version')) ? '–' : esc(S('sensor.tesla_version'))) + (ON('binary_sensor.tesla_update_avail') ? ' · dostępna aktualizacja' : '') + '</span><span>stan od ' + (bad(since) ? '–' : esc(ago(since))) + '</span></div>' +
+                '</div>';
+              return card;
+            ]]]
