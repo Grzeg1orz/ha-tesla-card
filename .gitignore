@@ -7,5 +7,3 @@ secrets.yaml
 *.bak*
 *.log
 .DS_Store
-# zdjęcia auta dodaje użytkownik samodzielnie (prawa autorskie)
-www/

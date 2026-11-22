@@ -15,7 +15,7 @@ Pokazuje:
 - Home Assistant z integracją MQTT i brokerem (np. dodatek Mosquitto).
 - TeslaMate publikujący na tym brokerze (zmienne `MQTT_HOST`, `MQTT_USERNAME`, `MQTT_PASSWORD`).
 - [button-card](https://github.com/custom-cards/button-card) zainstalowany przez HACS (testowane z 7.0.1).
-- Dwa zdjęcia auta, które dodajesz sam (patrz niżej).
+- Dwa zdjęcia auta. Przykładowe są w `www/tesla/`, możesz użyć własnych.
 
 ## Ograniczenia
 
@@ -36,14 +36,14 @@ Pokazuje:
    dashboards/tesla.yaml    -> /config/dashboards/tesla.yaml
    ```
 
-3. **Dodaj zdjęcia auta** do `/config/www/tesla/` (adres w HA: `/local/tesla/...`):
+3. **Skopiuj zdjęcia auta** z `www/tesla/` do `/config/www/tesla/` (adres w HA: `/local/tesla/...`):
 
-   | Plik | Co przedstawia | Rozmiar użyty w karcie |
+   | Plik | Co przedstawia | Rozmiar |
    |---|---|---|
-   | `tesla-iso.jpg` | auto z przodu pod kątem, ciemne tło `#161719` | ok. 800×420 px |
+   | `tesla-iso.jpg` | auto z przodu pod kątem, ciemne tło `#161719` | 800×420 px |
    | `tesla-top.jpg` | auto z góry, pionowo, przodem do góry, to samo tło | 443×700 px |
 
-   Użyj własnych zdjęć albo takich, do których masz prawa. W repozytorium ich nie ma.
+   Przykładowe zdjęcia przedstawiają czerwony Model 3. Są zrzutami ekranu, z których usunięto elementy interfejsu. Przed ponownym wykorzystaniem sprawdź, czy możesz ich używać, np. we własnych celach prywatnych. Własne zdjęcia muszą mieć te same proporcje i nazwy. Układ ramek opon i drzwi jest dopasowany do sylwetki z `tesla-top.jpg`.
 
 4. **Dołącz encje MQTT** w `configuration.yaml`.
 
