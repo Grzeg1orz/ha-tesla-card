@@ -2,6 +2,8 @@
 
 Dashboard z jedną kartą `custom:button-card`, który pokazuje stan auta Tesla na podstawie danych z [TeslaMate](https://github.com/teslamate-org/teslamate) publikowanych przez MQTT. Nie korzysta z Tesla Fleet API ani z żadnego zewnętrznego API. Czyta wyłącznie encje HA zdefiniowane w `mqtt_tesla.yaml`.
 
+![Podgląd karty](docs/preview.png)
+
 Pokazuje:
 
 - stan auta (online, uśpione, jazda, ładowanie), bieg, prędkość i lokalizację (geofence),
